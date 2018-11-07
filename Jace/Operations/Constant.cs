@@ -45,4 +45,13 @@ namespace Jace.Operations
         {
         }
     }
+
+    public class BooleanConstant : Constant<bool>
+    {
+        public BooleanConstant(bool value)
+            : base(DataType.FloatingPoint, value)
+        {
+        }
+    }
+
 }

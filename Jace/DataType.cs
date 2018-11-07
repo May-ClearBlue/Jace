@@ -7,7 +7,12 @@ namespace Jace
 {
     public enum DataType
     {
+        Null,
+        Boolean,
         Integer,
-        FloatingPoint
+        UnsighnedInteger,
+        FloatingPoint,
+        Literal,
+        Identifier,
     }
 }

@@ -59,8 +59,13 @@ namespace Jace
                     case TokenType.FloatingPoint:
                         resultStack.Push(new FloatingPointConstant((double)token.Value));
                         break;
+                        break;
                     case TokenType.Text:
-                        if (functionRegistry.IsFunctionName((string)token.Value))
+                        if((string)token.Value == "true")
+                            resultStack.Push(new BooleanConstant(true));
+                        else if((string)token.Value == "false")
+                            resultStack.Push(new BooleanConstant(false));
+                        else if (functionRegistry.IsFunctionName((string)token.Value))
                         {
                             operatorStack.Push(token);
                             parameterCount.Push(1);
