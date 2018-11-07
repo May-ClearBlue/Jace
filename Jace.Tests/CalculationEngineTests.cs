@@ -823,5 +823,53 @@ namespace Jace.Tests
             double expected = (11 * (11 + 1)) / 2.0;
             Assert.AreEqual(expected, result);
         }
+
+        [TestMethod]
+        public void TestAndCompiled()
+        {
+            CalculationEngine engine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled, true, false);
+            double result = engine.Calculate("(1 && 0)");
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod]
+        public void TestAndInterpreted()
+        {
+            CalculationEngine engine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted, true, false);
+            double result = engine.Calculate("(1 && 0)");
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod]
+        public void TestOr1Compiled()
+        {
+            CalculationEngine engine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled, true, false);
+            double result = engine.Calculate("(1 || 0)");
+            Assert.AreEqual(1, result);
+        }
+
+        [TestMethod]
+        public void TestOr1Interpreted()
+        {
+            CalculationEngine engine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted, true, false);
+            double result = engine.Calculate("(1 || 0)");
+            Assert.AreEqual(1, result);
+        }
+
+        [TestMethod]
+        public void TestOr2Compiled()
+        {
+            CalculationEngine engine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled, true, false);
+            double result = engine.Calculate("(0 || 0)");
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod]
+        public void TestOr2Interpreted()
+        {
+            CalculationEngine engine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted, true, false);
+            double result = engine.Calculate("(0 || 0)");
+            Assert.AreEqual(0, result);
+        }
     }
 }
