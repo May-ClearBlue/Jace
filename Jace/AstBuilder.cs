@@ -56,17 +56,20 @@ namespace Jace
                 switch (token.TokenType)
                 {
                     case TokenType.Integer:
-                        resultStack.Push(new IntegerConstant((int)token.Value));
+                        resultStack.Push(new VariableCalcurator((int)token.Value));
+                        //                        resultStack.Push(new IntegerConstant((int)token.Value));
                         break;
                     case TokenType.FloatingPoint:
-                        resultStack.Push(new FloatingPointConstant((double)token.Value));
-                        break;
+                        resultStack.Push(new VariableCalcurator((float)token.Value));
+                        //                        resultStack.Push(new FloatingPointConstant((double)token.Value));
                         break;
                     case TokenType.Text:
                         if((string)token.Value == "true")
-                            resultStack.Push(new BooleanConstant(true));
+                            resultStack.Push(new VariableCalcurator(true));
+//                        resultStack.Push(new BooleanConstant(true));
                         else if((string)token.Value == "false")
-                            resultStack.Push(new BooleanConstant(false));
+                            resultStack.Push(new VariableCalcurator(false));
+//                        resultStack.Push(new BooleanConstant(false));
                         else if (functionRegistry.IsFunctionName((string)token.Value))
                         {
                             operatorStack.Push(token);
@@ -74,7 +77,8 @@ namespace Jace
                         }
                         else
                         {
-                            resultStack.Push(new Variable(((string)token.Value).ToLowerInvariant()));
+                            resultStack.Push(new VariableCalcurator((string)token.Value));
+//                            resultStack.Push(new Variable(((string)token.Value).ToLowerInvariant()));
                         }
                         break;
                     case TokenType.LeftBracket:

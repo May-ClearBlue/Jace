@@ -20,6 +20,16 @@ namespace Jace.Execution
                 };
         }
 
+        public Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation,
+            IFunctionRegistry functionRegistry)
+        {
+            return variables =>
+            {
+//                variables = EngineUtil.ConvertVariableNamesToLowerCase(variables);
+                return Execute(operation, functionRegistry, variables);
+            };
+        }
+
         public double Execute(Operation operation, IFunctionRegistry functionRegistry)
         {
             return Execute(operation, functionRegistry, new Dictionary<string, double>());
@@ -215,7 +225,7 @@ namespace Jace.Execution
             else if (operation.GetType() == typeof(Exponentiation))
             {
                 Exponentiation exponentiation = (Exponentiation)operation;
-                return Math.Pow(Execute(exponentiation.Base, functionRegistry, variables), Execute(exponentiation.Exponent, functionRegistry, variables));
+                return new VariableCalcurator((float)Math.Pow(Execute(exponentiation.Base, functionRegistry, variables).Float(), Execute(exponentiation.Exponent, functionRegistry, variables).Float()));
             }
             else if (operation.GetType() == typeof(UnaryMinus))
             {
@@ -225,33 +235,34 @@ namespace Jace.Execution
             else if (operation.GetType() == typeof(LessThan))
             {
                 LessThan lessThan = (LessThan)operation;
-                return (Execute(lessThan.Argument1, functionRegistry, variables) < Execute(lessThan.Argument2, functionRegistry, variables)) ? 1.0 : 0.0;
+                return (Execute(lessThan.Argument1, functionRegistry, variables) < Execute(lessThan.Argument2, functionRegistry, variables));
             }
             else if (operation.GetType() == typeof(LessOrEqualThan))
             {
                 LessOrEqualThan lessOrEqualThan = (LessOrEqualThan)operation;
-                return (Execute(lessOrEqualThan.Argument1, functionRegistry, variables) <= Execute(lessOrEqualThan.Argument2, functionRegistry, variables)) ? 1.0 : 0.0;
+                return (Execute(lessOrEqualThan.Argument1, functionRegistry, variables) <= Execute(lessOrEqualThan.Argument2, functionRegistry, variables));
             }
             else if (operation.GetType() == typeof(GreaterThan))
             {
                 GreaterThan greaterThan = (GreaterThan)operation;
-                return (Execute(greaterThan.Argument1, functionRegistry, variables) > Execute(greaterThan.Argument2, functionRegistry, variables)) ? 1.0 : 0.0;
+                return (Execute(greaterThan.Argument1, functionRegistry, variables) > Execute(greaterThan.Argument2, functionRegistry, variables));
             }
             else if (operation.GetType() == typeof(GreaterOrEqualThan))
             {
                 GreaterOrEqualThan greaterOrEqualThan = (GreaterOrEqualThan)operation;
-                return (Execute(greaterOrEqualThan.Argument1, functionRegistry, variables) >= Execute(greaterOrEqualThan.Argument2, functionRegistry, variables)) ? 1.0 : 0.0;
+                return (Execute(greaterOrEqualThan.Argument1, functionRegistry, variables) >= Execute(greaterOrEqualThan.Argument2, functionRegistry, variables));
             }
             else if (operation.GetType() == typeof(Equal))
             {
                 Equal equal = (Equal)operation;
-                return (Execute(equal.Argument1, functionRegistry, variables) == Execute(equal.Argument2, functionRegistry, variables)) ? 1.0 : 0.0;
+                return (Execute(equal.Argument1, functionRegistry, variables) == Execute(equal.Argument2, functionRegistry, variables));
             }
             else if (operation.GetType() == typeof(NotEqual))
             {
                 NotEqual notEqual = (NotEqual)operation;
-                return (Execute(notEqual.Argument1, functionRegistry, variables) != Execute(notEqual.Argument2, functionRegistry, variables)) ? 1.0 : 0.0;
+                return (Execute(notEqual.Argument1, functionRegistry, variables) != Execute(notEqual.Argument2, functionRegistry, variables));
             }
+            /*
             else if (operation.GetType() == typeof(Function))
             {
                 Function function = (Function)operation;
@@ -264,6 +275,7 @@ namespace Jace.Execution
 
                 return Invoke(functionInfo.Function, arguments);
             }
+            */
             else
             {
                 throw new ArgumentException(string.Format("Unsupported operation \"{0}\".", operation.GetType().FullName), "operation");

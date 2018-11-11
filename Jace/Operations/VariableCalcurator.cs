@@ -16,9 +16,9 @@ namespace Jace.Operations
         }
 
         public VariableCalcurator(bool param) : base(DataType.Boolean , false) { paramString = param.ToString(); }
-        public VariableCalcurator(int param) : base(DataType.Integer,false) { paramString = param.ToString(); }
+        public VariableCalcurator(int param) : base(DataType.Integer, false) { paramString = param.ToString(); }
         public VariableCalcurator(float param) : base(DataType.FloatingPoint, false){ paramString = param.ToString(); }
-        public VariableCalcurator(string param) : base(DataType.String,false) { paramString = param; }
+        public VariableCalcurator(string param) : base(DataType.Literal, false) { paramString = param; }
         public VariableCalcurator(uint param) : base(DataType.UnsighnedInteger, false) { paramString = param.ToString(); }
 
         public bool Bool(bool defaultValue = false)
@@ -60,8 +60,8 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() + dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() + dest.Hex());
-                case DataType.String:
+                    return new VariableCalcurator(src.Uint() + dest.Uint());
+                case DataType.Literal:
                     return new VariableCalcurator(src.Literal() + dest.Literal());
                 default:
                     throw new VariableNotDefinedException(string.Format("this '+'is not defined."));
@@ -79,9 +79,28 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() - dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() - dest.Hex());
-                case DataType.String:
+                    return new VariableCalcurator(src.Uint() - dest.Uint());
+                case DataType.Literal:
                     return new VariableCalcurator(string.Empty);
+                default:
+                    throw new VariableNotDefinedException(string.Format("this '-'is not defined."));
+            }
+        }
+
+        public static VariableCalcurator operator -(VariableCalcurator src)
+        {
+            switch (src.DataType)
+            {
+                case DataType.Boolean:
+                    return new VariableCalcurator(false);
+                case DataType.Integer:
+                    return new VariableCalcurator(src.Int() * -1);
+                case DataType.FloatingPoint:
+                    return new VariableCalcurator(src.Float() * -1.0f);
+//                case DataType.UnsighnedInteger:
+//                    return new VariableCalcurator(src.Uint() * -1);
+ //               case DataType.Literal:
+ //                   return new VariableCalcurator(string.Empty);
                 default:
                     throw new VariableNotDefinedException(string.Format("this '-'is not defined."));
             }
@@ -98,7 +117,7 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() * dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() * dest.Hex());
+                    return new VariableCalcurator(src.Uint() * dest.Uint());
                 //                case TRDataType.Literal:
                 //                    return new VariableCalcurator(string.Empty);
                 default:
@@ -117,11 +136,30 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() / dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() / dest.Hex());
+                    return new VariableCalcurator(src.Uint() / dest.Uint());
                 //                case TRDataType.Literal:
                 //                    return new VariableCalcurator(src.Literal() + dest.Literal());
                 default:
                     throw new VariableNotDefinedException(string.Format("this '/'is not defined."));
+            }
+        }
+
+        public static VariableCalcurator operator %(VariableCalcurator src, VariableCalcurator dest)
+        {
+            switch (src.DataType)
+            {
+//                case DataType.Boolean:
+//                    return new VariableCalcurator(true);
+                case DataType.Integer:
+                    return new VariableCalcurator(src.Int() % dest.Int());
+                case DataType.FloatingPoint:
+                    return new VariableCalcurator(src.Float() % dest.Float());
+                case DataType.UnsighnedInteger:
+                    return new VariableCalcurator(src.Uint() % dest.Uint());
+//                case DataType.Literal:
+//                    return new VariableCalcurator(src.Literal() + dest.Literal());
+                default:
+                    throw new VariableNotDefinedException(string.Format("this '%'is not defined."));
             }
         }
 
@@ -136,8 +174,8 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() != 0.0f && dest.Float() != 0.0f);
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() != 0 && dest.Hex() != 0);
-                case DataType.String:
+                    return new VariableCalcurator(src.Uint() != 0 && dest.Uint() != 0);
+                case DataType.Literal:
                     return new VariableCalcurator(string.IsNullOrEmpty(src.Literal()) && string.IsNullOrEmpty(dest.Literal()));
                 default:
                     throw new VariableNotDefinedException(string.Format("this '&&'is not defined."));
@@ -155,8 +193,8 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator((src.Float() != 0.0f) || (dest.Float() != 0.0f));
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator((src.Hex() != 0) || (dest.Hex() != 0));
-                case DataType.String:
+                    return new VariableCalcurator((src.Uint() != 0) || (dest.Uint() != 0));
+                case DataType.Literal:
                     return new VariableCalcurator(string.IsNullOrEmpty(src.Literal()) || string.IsNullOrEmpty(dest.Literal()));
                 default:
                     throw new VariableNotDefinedException(string.Format("this '||'is not defined."));
@@ -174,8 +212,8 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator((src.Float() != 0.0f) == (dest.Float() != 0.0f));
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator((src.Hex() != 0) == (dest.Hex() != 0));
-                case DataType.String:
+                    return new VariableCalcurator((src.Uint() != 0) == (dest.Uint() != 0));
+                case DataType.Literal:
                     return new VariableCalcurator(string.IsNullOrEmpty(src.Literal()) == string.IsNullOrEmpty(dest.Literal()));
                 default:
                     throw new VariableNotDefinedException(string.Format("this '||'is not defined."));
@@ -193,8 +231,8 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator((src.Float() != 0.0f) != (dest.Float() != 0.0f));
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator((src.Hex() != 0) != (dest.Hex() != 0));
-                case DataType.String:
+                    return new VariableCalcurator((src.Uint() != 0) != (dest.Uint() != 0));
+                case DataType.Literal:
                     return new VariableCalcurator(string.IsNullOrEmpty(src.Literal()) != string.IsNullOrEmpty(dest.Literal()));
                 default:
                     throw new VariableNotDefinedException(string.Format("this '!='is not defined."));
@@ -212,7 +250,7 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() <= dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() <= dest.Hex());
+                    return new VariableCalcurator(src.Uint() <= dest.Uint());
                 //                case TRDataType.Literal:
                 //                    return new VariableCalcurator(src.Literal() + dest.Literal());
                 default:
@@ -231,7 +269,7 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() >= dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() >= dest.Hex());
+                    return new VariableCalcurator(src.Uint() >= dest.Uint());
                 //                case TRDataType.Literal:
                 //                    return new VariableCalcurator(src.Literal() + dest.Literal());
                 default:
@@ -250,7 +288,7 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() < dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() < dest.Hex());
+                    return new VariableCalcurator(src.Uint() < dest.Uint());
                 //                case TRDataType.Literal:
                 //                    return new VariableCalcurator(src.Literal() + dest.Literal());
                 default:
@@ -269,7 +307,7 @@ namespace Jace.Operations
                 case DataType.FloatingPoint:
                     return new VariableCalcurator(src.Float() > dest.Float());
                 case DataType.UnsighnedInteger:
-                    return new VariableCalcurator(src.Hex() > dest.Hex());
+                    return new VariableCalcurator(src.Uint() > dest.Uint());
                 //                case TRDataType.Literal:
                 //                    return new VariableCalcurator(src.Literal() + dest.Literal());
                 default:

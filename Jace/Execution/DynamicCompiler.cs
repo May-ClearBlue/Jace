@@ -22,6 +22,8 @@ namespace Jace.Execution
                 typeof(Func<double, double, double, double, double, double, double, double, double, double>).GetTypeInfo().Assembly.FullName;
         }
 
+        public Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation, IFunctionRegistry functionRegistry) { return null; }
+
         public double Execute(Operation operation, IFunctionRegistry functionRegistry)
         {
             return Execute(operation, functionRegistry, new Dictionary<string, double>());

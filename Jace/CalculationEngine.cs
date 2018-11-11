@@ -155,6 +155,34 @@ namespace Jace
             }
         }
 
+        public VariableCalcurator CalculateV2(string formulaText, IDictionary<string, VariableCalcurator> variables)
+        {
+            if (string.IsNullOrEmpty(formulaText))
+                throw new ArgumentNullException("formulaText");
+
+            if (variables == null)
+                throw new ArgumentNullException("variables");
+
+#if false
+            variables = EngineUtil.ConvertVariableNamesToLowerCase(variables);
+            VerifyVariableNames(variables);
+
+            // Add the reserved variables to the dictionary
+            foreach (ConstantInfo constant in ConstantRegistry)
+                variables.Add(constant.ConstantName, constant.Value);
+
+            if (IsInFormulaCache(formulaText, out var function))
+            {
+                return function(variables);
+            }
+#endif
+            {
+                Operation operation = BuildAbstractSyntaxTree(formulaText);
+                var function = BuildFormulaV2(formulaText, operation);
+                return function(variables);
+            }
+        }
+
         public FormulaBuilder Formula(string formulaText)
         {
             if (string.IsNullOrEmpty(formulaText))
@@ -383,6 +411,11 @@ namespace Jace
         {
             function = null;
             return cacheEnabled && executionFormulaCache.TryGetValue(formulaText, out function);
+        }
+
+        private Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(string formulaText, Operation operation)
+        {
+            return executor.BuildFormulaV2(operation, this.FunctionRegistry);
         }
 
         /// <summary>

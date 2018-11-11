@@ -55,8 +55,12 @@ namespace Jace.DemoApp
                     variables.Add(variable.Name, value);
                 }
 
-                IExecutor executor = new Interpreter();
-                double result = executor.Execute(operation, null, variables);
+                //IExecutor executor = new Interpreter();
+                //                double result = executor.Execute(operation, null, variables);
+                Interpreter executor = new Interpreter();
+                Dictionary<string, VariableCalcurator> variablesv2 = new Dictionary<string, VariableCalcurator>();
+
+                VariableCalcurator result = executor.Execute(operation, null, variablesv2);
 
                 resultTextBox.Text = "" + result;
             }

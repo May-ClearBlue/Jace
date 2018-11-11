@@ -10,7 +10,7 @@ namespace Jace.Execution
     {
         double Execute(Operation operation, IFunctionRegistry functionRegistry);
         double Execute(Operation operation, IFunctionRegistry functionRegistry, IDictionary<string, double> variables);
-
         Func<IDictionary<string, double>, double> BuildFormula(Operation operation, IFunctionRegistry functionRegistry);
+        Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation, IFunctionRegistry functionRegistry);
     }
 }
