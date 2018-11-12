@@ -21,9 +21,9 @@ namespace Jace.Execution
             FuncAssemblyQualifiedName =
                 typeof(Func<double, double, double, double, double, double, double, double, double, double>).GetTypeInfo().Assembly.FullName;
         }
-
+#if _USE_VARIABLE_
         public Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation, IFunctionRegistry functionRegistry) { return null; }
-
+#endif
         public double Execute(Operation operation, IFunctionRegistry functionRegistry)
         {
             return Execute(operation, functionRegistry, new Dictionary<string, double>());

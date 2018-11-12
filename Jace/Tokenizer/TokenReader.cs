@@ -44,7 +44,7 @@ namespace Jace.Tokenizer
 
             bool isFormulaSubPart = true;
 
-            for(int i = 0; i < characters.Length; i++)
+            for (int i = 0; i < characters.Length; i++)
             {
                 if (IsPartOfNumeric(characters[i], true, isFormulaSubPart))
                 {
@@ -65,8 +65,15 @@ namespace Jace.Tokenizer
                     }
                     else
                     {
+                        uint uintValue;
                         double doubleValue;
-                        if (double.TryParse(buffer, NumberStyles.Float | NumberStyles.AllowThousands,
+                        if (buffer[0] == '0' && buffer.Length > 2 && (buffer[1] == 'x' || buffer[1] == 'X'))
+                        {
+                            string _hex = buffer.Substring(2);
+                            if(uint.TryParse(_hex, System.Globalization.NumberStyles.AllowHexSpecifier, null, out uintValue))
+                                tokens.Add(new Token() { TokenType = TokenType.Hex, Value = uintValue, StartPosition = startPosition+2, Length = i - startPosition });
+                        }
+                        else if (double.TryParse(buffer, NumberStyles.Float | NumberStyles.AllowThousands,
                             cultureInfo, out doubleValue))
                         {
                             tokens.Add(new Token() { TokenType = TokenType.FloatingPoint, Value = doubleValue, StartPosition = startPosition, Length = i - startPosition });
@@ -192,8 +199,13 @@ namespace Jace.Tokenizer
                                 tokens.Add(new Token() { TokenType = TokenType.Operation, Value = '=', StartPosition = i++, Length = 2 });
                                 isFormulaSubPart = false;
                             }
+#if _USE_VARIABLE_
+                            else
+                                tokens.Add(new Token() { TokenType = TokenType.Operation, Value = '＝', StartPosition = i++, Length = 1 });
+#else
                             else
                                 throw new ParseException(string.Format("Invalid token \"{0}\" detected at position {1}.", characters[i], i));
+#endif
                             break;
                         default:
                             throw new ParseException(string.Format("Invalid token \"{0}\" detected at position {1}.", characters[i], i));

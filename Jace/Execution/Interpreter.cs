@@ -20,16 +20,16 @@ namespace Jace.Execution
                 };
         }
 
+#if _USE_VARIABLE_
         public Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation,
             IFunctionRegistry functionRegistry)
         {
             return variables =>
             {
-//                variables = EngineUtil.ConvertVariableNamesToLowerCase(variables);
                 return Execute(operation, functionRegistry, variables);
             };
         }
-
+#endif
         public double Execute(Operation operation, IFunctionRegistry functionRegistry)
         {
             return Execute(operation, functionRegistry, new Dictionary<string, double>());
@@ -162,6 +162,7 @@ namespace Jace.Execution
             }
         }
 
+#if _USE_VARIABLE_
         public VariableCalcurator Execute(Operation operation, IFunctionRegistry functionRegistry,
             IDictionary<string, VariableCalcurator> variables)
         {
@@ -183,16 +184,15 @@ namespace Jace.Execution
             {
                 VariableCalcurator variable = (VariableCalcurator)operation;
 
-                //                double value;
-                //                bool variableFound = variables.TryGetValue(variable.Name, out value);
-                if (variable.DataType == DataType.Identifier)
+                if (variable.DataType == DataType.Literal)
                 {
                     bool variableFound = variables.ContainsKey(variable.Literal());
 
                     if (variableFound)
                         return variables[variable.Literal()];
-                    else
-                        throw new VariableNotDefinedException(string.Format("The variable \"{0}\" used is not defined.", variable.Literal()));
+//                    else
+//                        return variable;
+//                        throw new VariableNotDefinedException(string.Format("The variable \"{0}\" used is not defined.", variable.Literal()));
                 }
 
                 return variable;
@@ -262,6 +262,12 @@ namespace Jace.Execution
                 NotEqual notEqual = (NotEqual)operation;
                 return (Execute(notEqual.Argument1, functionRegistry, variables) != Execute(notEqual.Argument2, functionRegistry, variables));
             }
+            else if (operation.GetType() == typeof(Substitution))
+            {
+                Substitution substitution = (Substitution)operation;
+                return Substitute(Execute(substitution.Argument1, functionRegistry, variables), Execute(substitution.Argument2, functionRegistry, variables), variables);
+            }
+
             /*
             else if (operation.GetType() == typeof(Function))
             {
@@ -280,6 +286,13 @@ namespace Jace.Execution
             {
                 throw new ArgumentException(string.Format("Unsupported operation \"{0}\".", operation.GetType().FullName), "operation");
             }
+        }
+#endif
+
+        private VariableCalcurator Substitute(VariableCalcurator arg1, VariableCalcurator arg2, IDictionary<string, VariableCalcurator> variables)
+        {
+            variables[arg1.Literal()] = arg2;
+            return arg2;
         }
 
         private double Invoke(Delegate function, double[] arguments)

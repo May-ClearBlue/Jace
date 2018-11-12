@@ -9,6 +9,7 @@ namespace Jace.Tokenizer
     {
         Integer,
         FloatingPoint,
+        Hex,
         Text,
         Operation,
         LeftBracket,

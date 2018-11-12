@@ -155,6 +155,7 @@ namespace Jace
             }
         }
 
+#if _USE_VARIABLE_
         public VariableCalcurator CalculateV2(string formulaText, IDictionary<string, VariableCalcurator> variables)
         {
             if (string.IsNullOrEmpty(formulaText))
@@ -163,25 +164,11 @@ namespace Jace
             if (variables == null)
                 throw new ArgumentNullException("variables");
 
-#if false
-            variables = EngineUtil.ConvertVariableNamesToLowerCase(variables);
-            VerifyVariableNames(variables);
-
-            // Add the reserved variables to the dictionary
-            foreach (ConstantInfo constant in ConstantRegistry)
-                variables.Add(constant.ConstantName, constant.Value);
-
-            if (IsInFormulaCache(formulaText, out var function))
-            {
-                return function(variables);
-            }
-#endif
-            {
-                Operation operation = BuildAbstractSyntaxTree(formulaText);
-                var function = BuildFormulaV2(formulaText, operation);
-                return function(variables);
-            }
+            Operation operation = BuildAbstractSyntaxTree(formulaText);
+            var function = BuildFormulaV2(formulaText, operation);
+            return function(variables);
         }
+#endif
 
         public FormulaBuilder Formula(string formulaText)
         {
@@ -413,11 +400,12 @@ namespace Jace
             return cacheEnabled && executionFormulaCache.TryGetValue(formulaText, out function);
         }
 
+#if _USE_VARIABLE_
         private Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(string formulaText, Operation operation)
         {
             return executor.BuildFormulaV2(operation, this.FunctionRegistry);
         }
-
+#endif
         /// <summary>
         /// Verify a collection of variables to ensure that all the variable names are valid.
         /// Users are not allowed to overwrite reserved variables or use function names as variables.

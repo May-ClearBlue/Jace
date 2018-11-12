@@ -23,7 +23,7 @@ namespace Jace
                 throw new ArgumentNullException("functionRegistry");
 
             this.functionRegistry = functionRegistry;
-
+            operationPrecedence.Add('＝', 0);
             operationPrecedence.Add('(', 0);
             operationPrecedence.Add('&', 1);
             operationPrecedence.Add('|', 1);
@@ -55,32 +55,44 @@ namespace Jace
 
                 switch (token.TokenType)
                 {
+#if _USE_VARIABLE_
                     case TokenType.Integer:
                         resultStack.Push(new VariableCalcurator((int)token.Value));
-                        //                        resultStack.Push(new IntegerConstant((int)token.Value));
                         break;
                     case TokenType.FloatingPoint:
                         resultStack.Push(new VariableCalcurator((float)token.Value));
-                        //                        resultStack.Push(new FloatingPointConstant((double)token.Value));
+                        break;
+                    case TokenType.Hex:
+                        resultStack.Push(new VariableCalcurator((uint)token.Value));
                         break;
                     case TokenType.Text:
-                        if((string)token.Value == "true")
+                        if ((string)token.Value == "true")
                             resultStack.Push(new VariableCalcurator(true));
-//                        resultStack.Push(new BooleanConstant(true));
-                        else if((string)token.Value == "false")
+                        else if ((string)token.Value == "false")
                             resultStack.Push(new VariableCalcurator(false));
-//                        resultStack.Push(new BooleanConstant(false));
-                        else if (functionRegistry.IsFunctionName((string)token.Value))
+                        else
+                            resultStack.Push(new VariableCalcurator((string)token.Value));
+                        break;
+
+#else
+                    case TokenType.Integer:
+                        resultStack.Push(new IntegerConstant((int)token.Value));
+                        break;
+                    case TokenType.FloatingPoint:
+                        resultStack.Push(new FloatingPointConstant((double)token.Value));
+                        break;
+                    case TokenType.Text:
+                        if (functionRegistry.IsFunctionName((string)token.Value))
                         {
                             operatorStack.Push(token);
                             parameterCount.Push(1);
                         }
                         else
                         {
-                            resultStack.Push(new VariableCalcurator((string)token.Value));
-//                            resultStack.Push(new Variable(((string)token.Value).ToLowerInvariant()));
+                            resultStack.Push(new Variable(((string)token.Value).ToLowerInvariant()));
                         }
                         break;
+#endif
                     case TokenType.LeftBracket:
                         operatorStack.Push(token);
                         break;
@@ -272,6 +284,14 @@ namespace Jace
                         dataType = RequiredDataType(argument1, argument2);
 
                         return new NotEqual(dataType, argument1, argument2);
+#if _USE_VARIABLE_
+                    case '＝':
+                        argument2 = resultStack.Pop();
+                        argument1 = resultStack.Pop();
+                        dataType = RequiredDataType(argument1, argument2);
+
+                        return new Substitution(dataType, argument1, argument2);
+#endif
                     default:
                         throw new ArgumentException(string.Format("Unknown operation \"{0}\".", operationToken), "operation");
                 }

@@ -5,6 +5,8 @@ namespace Jace.Operations
 {
     public class VariableCalcurator : Operation
     {
+        public IDictionary<string, VariableCalcurator> variables = null;
+
         public string paramString;
         public bool lastResult = false;
 
@@ -20,28 +22,112 @@ namespace Jace.Operations
         public VariableCalcurator(float param) : base(DataType.FloatingPoint, false){ paramString = param.ToString(); }
         public VariableCalcurator(string param) : base(DataType.Literal, false) { paramString = param; }
         public VariableCalcurator(uint param) : base(DataType.UnsighnedInteger, false) { paramString = param.ToString(); }
+        public VariableCalcurator(string param, IDictionary<string, VariableCalcurator> _variables) : base(DataType.Variable, false) { paramString = param; _variables = variables; }
+
+        VariableCalcurator instance
+        {
+            get
+            {
+                if (DataType == DataType.Variable)
+                    return variables[paramString].instance;
+                else
+                    return this;
+            }
+        }
 
         public bool Bool(bool defaultValue = false)
         {
-            bool result = false;
-            return (lastResult = bool.TryParse(paramString, out result)) ? result : defaultValue;
+            switch (DataType)
+            {
+                case DataType.Boolean:
+                    bool result = false;
+                    return (lastResult = bool.TryParse(paramString, out result)) ? result : defaultValue;
+                case DataType.FloatingPoint:
+                    float _float;
+                    return float.TryParse(paramString, out _float) ? _float == 0.0f : false;
+                //                case DataType.Identifier:
+                case DataType.Integer:
+                    int _int;
+                    return int.TryParse(paramString, out _int) ? _int == 0 : false;
+                case DataType.Literal:
+                    return !string.IsNullOrEmpty(paramString);
+                case DataType.UnsighnedInteger:
+                    uint _uint;
+                    return uint.TryParse(paramString, out _uint) ? _uint == 0 : false;
+            }
+
+            return false;
         }
         public float Float(float defaultValue = 0.0f)
         {
-            float result = 0.0f;
-            return (lastResult = float.TryParse(paramString, out result)) ? result : defaultValue;
+            switch (DataType)
+            {
+//                case DataType.Boolean:
+//                    bool result = false;
+//                    return (lastResult = bool.TryParse(paramString, out result)) ? result : defaultValue;
+                case DataType.FloatingPoint:
+                    float _float;
+                    return float.TryParse(paramString, out _float) ? _float : 0.0f;
+                //                case DataType.Identifier:
+                case DataType.Integer:
+                    int _int;
+                    return int.TryParse(paramString, out _int) ? _int : 0.0f;
+ //               case DataType.Literal:
+ //                   return !string.IsNullOrEmpty(paramString);
+                case DataType.UnsighnedInteger:
+                    uint _uint;
+                    return uint.TryParse(paramString, out _uint) ? _uint : 0.0f;
+            }
+
+            return 0.0f;
         }
 
         public int Int(int defaultValue = 0)
         {
-            int result = 0;
-            return (lastResult = int.TryParse(paramString, out result)) ? result : defaultValue;
+            switch (DataType)
+            {
+                //                case DataType.Boolean:
+                //                    bool result = false;
+                //                    return (lastResult = bool.TryParse(paramString, out result)) ? result : defaultValue;
+                case DataType.FloatingPoint:
+                    float _float;
+                    return float.TryParse(paramString, out _float) ? (int)_float : 0;
+                //                case DataType.Identifier:
+                case DataType.Integer:
+                    int _int;
+                    return int.TryParse(paramString, out _int) ? _int : 0;
+                //               case DataType.Literal:
+                //                   return !string.IsNullOrEmpty(paramString);
+                case DataType.UnsighnedInteger:
+                    uint _uint;
+                    return uint.TryParse(paramString, out _uint) ? (int)_uint : 0;
+            }
+
+            return 0;
         }
 
         public uint Uint(uint defaultValue = 0)
         {
-            uint result = 0;
-            return (lastResult = uint.TryParse(paramString, out result)) ? result : defaultValue;
+            switch (DataType)
+            {
+                //                case DataType.Boolean:
+                //                    bool result = false;
+                //                    return (lastResult = bool.TryParse(paramString, out result)) ? result : defaultValue;
+                case DataType.FloatingPoint:
+                    float _float;
+                    return float.TryParse(paramString, out _float) ? (uint)_float : 0;
+                //                case DataType.Identifier:
+                case DataType.Integer:
+                    int _int;
+                    return int.TryParse(paramString, out _int) ? (uint)_int : 0;
+                //               case DataType.Literal:
+                //                   return !string.IsNullOrEmpty(paramString);
+                case DataType.UnsighnedInteger:
+                    uint _uint;
+                    return uint.TryParse(paramString, out _uint) ? _uint : 0;
+            }
+
+            return 0;
         }
 
         public string Literal(string defaultValue = null)
