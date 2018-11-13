@@ -24,7 +24,7 @@ namespace Jace.Operations
         public VariableCalcurator(uint param) : base(DataType.UnsighnedInteger, false) { paramString = param.ToString(); }
         public VariableCalcurator(string param, IDictionary<string, VariableCalcurator> _variables) : base(DataType.Variable, false) { paramString = param; _variables = variables; }
 
-        VariableCalcurator instance
+        public VariableCalcurator instance
         {
             get
             {

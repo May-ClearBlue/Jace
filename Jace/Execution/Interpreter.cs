@@ -186,13 +186,17 @@ namespace Jace.Execution
 
                 if (variable.DataType == DataType.Literal)
                 {
+                    return new VariableCalcurator(variable.Literal(), variables);
+#if false
                     bool variableFound = variables.ContainsKey(variable.Literal());
 
                     if (variableFound)
                         return variables[variable.Literal()];
-//                    else
-//                        return variable;
-//                        throw new VariableNotDefinedException(string.Format("The variable \"{0}\" used is not defined.", variable.Literal()));
+
+                    else
+                        return variable;
+                        throw new VariableNotDefinedException(string.Format("The variable \"{0}\" used is not defined.", variable.Literal()));
+#endif
                 }
 
                 return variable;
@@ -200,67 +204,67 @@ namespace Jace.Execution
             else if (operation.GetType() == typeof(Multiplication))
             {
                 Multiplication multiplication = (Multiplication)operation;
-                return Execute(multiplication.Argument1, functionRegistry, variables) * Execute(multiplication.Argument2, functionRegistry, variables);
+                return Execute(multiplication.Argument1, functionRegistry, variables).instance *  Execute(multiplication.Argument2, functionRegistry, variables).instance;
             }
             else if (operation.GetType() == typeof(Addition))
             {
                 Addition addition = (Addition)operation;
-                return Execute(addition.Argument1, functionRegistry, variables) + Execute(addition.Argument2, functionRegistry, variables);
+                return Execute(addition.Argument1, functionRegistry, variables).instance + Execute(addition.Argument2, functionRegistry, variables).instance;
             }
             else if (operation.GetType() == typeof(Subtraction))
             {
                 Subtraction addition = (Subtraction)operation;
-                return Execute(addition.Argument1, functionRegistry, variables) - Execute(addition.Argument2, functionRegistry, variables);
+                return Execute(addition.Argument1, functionRegistry, variables).instance - Execute(addition.Argument2, functionRegistry, variables).instance;
             }
             else if (operation.GetType() == typeof(Division))
             {
                 Division division = (Division)operation;
-                return Execute(division.Dividend, functionRegistry, variables) / Execute(division.Divisor, functionRegistry, variables);
+                return Execute(division.Dividend, functionRegistry, variables).instance / Execute(division.Divisor, functionRegistry, variables).instance;
             }
             else if (operation.GetType() == typeof(Modulo))
             {
                 Modulo division = (Modulo)operation;
-                return Execute(division.Dividend, functionRegistry, variables) % Execute(division.Divisor, functionRegistry, variables);
+                return Execute(division.Dividend, functionRegistry, variables).instance % Execute(division.Divisor, functionRegistry, variables).instance;
             }
             else if (operation.GetType() == typeof(Exponentiation))
             {
                 Exponentiation exponentiation = (Exponentiation)operation;
-                return new VariableCalcurator((float)Math.Pow(Execute(exponentiation.Base, functionRegistry, variables).Float(), Execute(exponentiation.Exponent, functionRegistry, variables).Float()));
+                return new VariableCalcurator((float)Math.Pow(Execute(exponentiation.Base, functionRegistry, variables).instance.Float(), Execute(exponentiation.Exponent, functionRegistry, variables).instance.Float()));
             }
             else if (operation.GetType() == typeof(UnaryMinus))
             {
                 UnaryMinus unaryMinus = (UnaryMinus)operation;
-                return -Execute(unaryMinus.Argument, functionRegistry, variables);
+                return -Execute(unaryMinus.Argument, functionRegistry, variables).instance;
             }
             else if (operation.GetType() == typeof(LessThan))
             {
                 LessThan lessThan = (LessThan)operation;
-                return (Execute(lessThan.Argument1, functionRegistry, variables) < Execute(lessThan.Argument2, functionRegistry, variables));
+                return (Execute(lessThan.Argument1, functionRegistry, variables).instance < Execute(lessThan.Argument2, functionRegistry, variables).instance);
             }
             else if (operation.GetType() == typeof(LessOrEqualThan))
             {
                 LessOrEqualThan lessOrEqualThan = (LessOrEqualThan)operation;
-                return (Execute(lessOrEqualThan.Argument1, functionRegistry, variables) <= Execute(lessOrEqualThan.Argument2, functionRegistry, variables));
+                return (Execute(lessOrEqualThan.Argument1, functionRegistry, variables).instance <= Execute(lessOrEqualThan.Argument2, functionRegistry, variables).instance);
             }
             else if (operation.GetType() == typeof(GreaterThan))
             {
                 GreaterThan greaterThan = (GreaterThan)operation;
-                return (Execute(greaterThan.Argument1, functionRegistry, variables) > Execute(greaterThan.Argument2, functionRegistry, variables));
+                return (Execute(greaterThan.Argument1, functionRegistry, variables).instance > Execute(greaterThan.Argument2, functionRegistry, variables).instance);
             }
             else if (operation.GetType() == typeof(GreaterOrEqualThan))
             {
                 GreaterOrEqualThan greaterOrEqualThan = (GreaterOrEqualThan)operation;
-                return (Execute(greaterOrEqualThan.Argument1, functionRegistry, variables) >= Execute(greaterOrEqualThan.Argument2, functionRegistry, variables));
+                return (Execute(greaterOrEqualThan.Argument1, functionRegistry, variables).instance >= Execute(greaterOrEqualThan.Argument2, functionRegistry, variables).instance);
             }
             else if (operation.GetType() == typeof(Equal))
             {
                 Equal equal = (Equal)operation;
-                return (Execute(equal.Argument1, functionRegistry, variables) == Execute(equal.Argument2, functionRegistry, variables));
+                return (Execute(equal.Argument1, functionRegistry, variables).instance == Execute(equal.Argument2, functionRegistry, variables).instance);
             }
             else if (operation.GetType() == typeof(NotEqual))
             {
                 NotEqual notEqual = (NotEqual)operation;
-                return (Execute(notEqual.Argument1, functionRegistry, variables) != Execute(notEqual.Argument2, functionRegistry, variables));
+                return (Execute(notEqual.Argument1, functionRegistry, variables).instance != Execute(notEqual.Argument2, functionRegistry, variables).instance);
             }
             else if (operation.GetType() == typeof(Substitution))
             {
@@ -291,7 +295,11 @@ namespace Jace.Execution
 
         private VariableCalcurator Substitute(VariableCalcurator arg1, VariableCalcurator arg2, IDictionary<string, VariableCalcurator> variables)
         {
+            if(arg1.DataType != DataType.Variable)
+                throw new ArgumentException("Left is no variable");
+
             variables[arg1.Literal()] = arg2;
+
             return arg2;
         }
 
