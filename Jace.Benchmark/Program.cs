@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommandLine;
 using Jace.Execution;
+using OfficeOpenXml;
 
 namespace Jace.Benchmark
 {
-    class Program
+    static class Program
     {
         private const int NumberOfTests = 1000000;
         private const int NumberOfFunctionsToGenerate = 10000;
@@ -16,58 +20,108 @@ namespace Jace.Benchmark
 
         static void Main(string[] args)
         {
-            ConsoleColor defaultForegroundColor = Console.ForegroundColor;
+            var result = Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(options => {
+                    DataTable table = Benchmark(options.Mode, options.CaseSensitivity);
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Jace.NET Benchmark Application");
-            Console.ForegroundColor = defaultForegroundColor;
-            Console.WriteLine();
-
-            Console.WriteLine("--------------------");
-            Console.WriteLine("Function: {0}", "2+3*7/23");
-            Console.WriteLine("Number Of Tests: {0}", NumberOfTests.ToString("N0"));
-            Console.WriteLine();
-
-            Console.WriteLine("Interpreted Mode:");
-            CalculationEngine interpretedEngine = new CalculationEngine(CultureInfo.CurrentCulture, ExecutionMode.Interpreted);
-            BenchMarkCalculationEngine(interpretedEngine, "2+3*7");
-
-            Console.WriteLine("Compiled Mode:");
-            CalculationEngine compiledEngine = new CalculationEngine(CultureInfo.CurrentCulture, ExecutionMode.Compiled);
-            BenchMarkCalculationEngine(compiledEngine, "2+3*7");
-
-            Console.WriteLine("--------------------");
-            Console.WriteLine("Function: {0}", "(var1 + var2 * 3)/(2+3) - something");
-            Console.WriteLine("Number Of Tests: {0}", NumberOfTests.ToString("N0"));
-            Console.WriteLine();
-
-            Console.WriteLine("Interpreted Mode:");
-            BenchMarkCalculationEngineFunctionBuild(interpretedEngine, "(var1 + var2 * 3)/(2+3) - something");
-
-            Console.WriteLine("Compiled Mode:");
-            BenchMarkCalculationEngineFunctionBuild(compiledEngine, "(var1 + var2 * 3)/(2+3) - something");
-
-            Console.WriteLine("--------------------");
-            Console.WriteLine("Random Generated Functions: {0}", NumberOfFunctionsToGenerate.ToString("N0"));
-            Console.WriteLine("Number Of Variables Of Each Function: {0}", 3);
-            Console.WriteLine("Number Of Executions For Each Function: {0}", NumberExecutionsPerRandomFunction.ToString("N0"));
-            Console.WriteLine("Total Number Of Executions: {0}", (NumberExecutionsPerRandomFunction * NumberOfFunctionsToGenerate).ToString("N0"));
-            Console.WriteLine("Parallel: {0}", true);
-            Console.WriteLine();
-
-            List<string> functions = GenerateRandomFunctions(NumberOfFunctionsToGenerate);
-
-            Console.WriteLine("Interpreted Mode:");
-            BenchMarkCalculationEngineRandomFunctionBuild(interpretedEngine, functions, NumberExecutionsPerRandomFunction);
-
-            Console.WriteLine("Compiled Mode:");
-            BenchMarkCalculationEngineRandomFunctionBuild(compiledEngine, functions, NumberExecutionsPerRandomFunction);
-
-            Console.WriteLine("Press enter to exit...");
-            Console.ReadLine();
+                    WriteToExcelFile(table, options.FileName);
+            });
         }
 
-        private static void BenchMarkCalculationEngine(CalculationEngine engine, string functionText)
+        private static DataTable Benchmark(BenchmarkMode mode, CaseSensitivity caseSensitivity)
+        { 
+            TimeSpan duration;
+
+            CalculationEngine interpretedEngine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted, true, true, true);
+            CalculationEngine interpretedEngineCaseSensitive = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted, true, true, false);
+            CalculationEngine compiledEngine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled, true, true, true);
+            CalculationEngine compiledEngineCaseSensitive = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled, true, true, false);
+
+            BenchMarkOperation[] benchmarks = {
+                new BenchMarkOperation() { Formula = "2+3*7", Mode = BenchmarkMode.Static, BenchMarkDelegate = BenchMarkCalculationEngine },
+                new BenchMarkOperation() { Formula = "logn(var1, (2+3) * 500)", Mode = BenchmarkMode.SimpleFunction , BenchMarkDelegate = BenchMarkCalculationEngineFunctionBuild },
+                new BenchMarkOperation() { Formula = "(var1 + var2 * 3)/(2+3) - something", Mode = BenchmarkMode.Simple , BenchMarkDelegate = BenchMarkCalculationEngineFunctionBuild },
+            };
+
+            DataTable table = new DataTable();
+            table.Columns.Add("Engine");
+            table.Columns.Add("Case Sensitive");
+            table.Columns.Add("Formula");
+            table.Columns.Add("Iterations per Random Formula", typeof(int));
+            table.Columns.Add("Total Iteration", typeof(int));
+            table.Columns.Add("Total Duration");
+
+            foreach (BenchMarkOperation benchmark in benchmarks)
+            {
+                if (mode == BenchmarkMode.All || mode == benchmark.Mode)
+                {
+                    if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseInSensitive)
+                    {
+                        duration = benchmark.BenchMarkDelegate(interpretedEngine, benchmark.Formula);
+                        table.AddBenchmarkRecord("Interpreted", false, benchmark.Formula, null, NumberOfTests, duration);
+                    }
+
+                    if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseSensitive)
+                    {
+                        duration = benchmark.BenchMarkDelegate(interpretedEngineCaseSensitive, benchmark.Formula);
+                        table.AddBenchmarkRecord("Interpreted", true, benchmark.Formula, null, NumberOfTests, duration);
+                    }
+
+                    if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseInSensitive)
+                    {
+                        duration = benchmark.BenchMarkDelegate(compiledEngine, benchmark.Formula);
+                        table.AddBenchmarkRecord("Compiled", false, benchmark.Formula, null, NumberOfTests, duration);
+                    }
+
+                    if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseSensitive)
+                    {
+                        duration = benchmark.BenchMarkDelegate(compiledEngineCaseSensitive, benchmark.Formula);
+                        table.AddBenchmarkRecord("Compiled", true, benchmark.Formula, null, NumberOfTests, duration);
+                    }
+                }
+            }
+
+            if (mode == BenchmarkMode.All || mode == BenchmarkMode.Random)
+            {
+                List<string> functions = GenerateRandomFunctions(NumberOfFunctionsToGenerate);
+
+                if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseInSensitive)
+                {
+                    //Interpreted Mode
+                    duration = BenchMarkCalculationEngineRandomFunctionBuild(interpretedEngine, functions, NumberExecutionsPerRandomFunction);
+                    table.AddBenchmarkRecord("Interpreted", false, string.Format("Random Mode {0} functions 3 variables", NumberOfFunctionsToGenerate),
+                        NumberExecutionsPerRandomFunction, NumberExecutionsPerRandomFunction * NumberOfFunctionsToGenerate, duration);
+                }
+
+                if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseSensitive)
+                {
+                    //Interpreted Mode(Case Sensitive)
+                    duration = BenchMarkCalculationEngineRandomFunctionBuild(interpretedEngineCaseSensitive, functions, NumberExecutionsPerRandomFunction);
+                    table.AddBenchmarkRecord("Interpreted", true, string.Format("Random Mode {0} functions 3 variables", NumberOfFunctionsToGenerate),
+                        NumberExecutionsPerRandomFunction, NumberExecutionsPerRandomFunction * NumberOfFunctionsToGenerate, duration);
+                }
+
+                if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseInSensitive)
+                {
+                    //Compiled Mode
+                    duration = BenchMarkCalculationEngineRandomFunctionBuild(compiledEngine, functions, NumberExecutionsPerRandomFunction);
+                    table.AddBenchmarkRecord("Compiled", false, string.Format("Random Mode {0} functions 3 variables", NumberOfFunctionsToGenerate),
+                        NumberExecutionsPerRandomFunction, NumberExecutionsPerRandomFunction * NumberOfFunctionsToGenerate, duration);
+                }
+
+                if (caseSensitivity == CaseSensitivity.All || caseSensitivity == CaseSensitivity.CaseSensitive)
+                {
+                    //Compiled Mode(Case Sensitive)
+                    duration = BenchMarkCalculationEngineRandomFunctionBuild(compiledEngineCaseSensitive, functions, NumberExecutionsPerRandomFunction);
+                    table.AddBenchmarkRecord("Compiled", true, string.Format("Random Mode {0} functions 3 variables", NumberOfFunctionsToGenerate),
+                        NumberExecutionsPerRandomFunction, NumberExecutionsPerRandomFunction * NumberOfFunctionsToGenerate, duration);
+                }
+            }
+
+            return table;
+        }
+
+        private static TimeSpan BenchMarkCalculationEngine(CalculationEngine engine, string functionText)
         {
             DateTime start = DateTime.Now;
 
@@ -78,10 +132,10 @@ namespace Jace.Benchmark
 
             DateTime end = DateTime.Now;
 
-            Console.WriteLine("Total duration: {0}", end - start);
+            return end - start;
         }
 
-        private static void BenchMarkCalculationEngineFunctionBuild(CalculationEngine engine, string functionText)
+        private static TimeSpan BenchMarkCalculationEngineFunctionBuild(CalculationEngine engine, string functionText)
         {
             DateTime start = DateTime.Now;
 
@@ -101,7 +155,7 @@ namespace Jace.Benchmark
 
             DateTime end = DateTime.Now;
 
-            Console.WriteLine("Total duration: {0}", end - start);
+            return end - start;
         }
 
         private static List<string> GenerateRandomFunctions(int numberOfFunctions)
@@ -115,7 +169,7 @@ namespace Jace.Benchmark
             return result;
         }
 
-        private static void BenchMarkCalculationEngineRandomFunctionBuild(CalculationEngine engine, List<string> functions, 
+        private static TimeSpan BenchMarkCalculationEngineRandomFunctionBuild(CalculationEngine engine, List<string> functions, 
             int numberOfTests)
         {
             Random random = new Random();
@@ -139,7 +193,30 @@ namespace Jace.Benchmark
 
             DateTime end = DateTime.Now;
 
-            Console.WriteLine("Total duration: {0}", end - start);
+            return end - start;
+        }
+
+        private static void AddBenchmarkRecord(this DataTable table, string engine, bool caseSensitive, string formula, int? iterationsPerRandom, int totalIterations, TimeSpan duration)
+        {
+            table.Rows.Add(engine, caseSensitive, formula, iterationsPerRandom, totalIterations, duration);
+        }
+
+        private static void WriteToExcelFile(DataTable table, string fileName)
+        {
+            using (var excel = new ExcelPackage())
+            {
+                var worksheet = excel.Workbook.Worksheets.Add("Results");
+                worksheet.Cells.LoadFromDataTable(table, true);
+
+                char endColumnLetter = (char)('A' + table.Columns.Count - 1);
+
+                worksheet.Cells["A1:" + endColumnLetter + "1"].Style.Font.Bold = true;
+
+                for (int i = 0; i < table.Columns.Count; i++)
+                    worksheet.Column(i + 1).AutoFit();
+
+                excel.SaveAs(new FileInfo(fileName));
+            }
         }
     }
 }

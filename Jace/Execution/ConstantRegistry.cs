@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Jace.Util;
 
 namespace Jace.Execution
 {
@@ -19,7 +20,7 @@ namespace Jace.Execution
 
         public IEnumerator<ConstantInfo> GetEnumerator()
         {
-            return constants.Select(p => p.Value).ToList().GetEnumerator();
+            return constants.Values.GetEnumerator();
         }
 
         IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -72,7 +73,7 @@ namespace Jace.Execution
 
         private string ConvertConstantName(string constantName)
         {
-            return caseSensitive ? constantName : constantName.ToLowerInvariant();
+            return caseSensitive ? constantName : constantName.ToLowerFast();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Collections;
+using Jace.Util;
 
 namespace Jace.Execution
 {
@@ -22,7 +23,7 @@ namespace Jace.Execution
 
         public IEnumerator<FunctionInfo> GetEnumerator()
         {
-            return functions.Select(p => p.Value).ToList().GetEnumerator();
+            return functions.Values.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -41,10 +42,10 @@ namespace Jace.Execution
 
         public void RegisterFunction(string functionName, Delegate function)
         {
-            RegisterFunction(functionName, function, true);
+            RegisterFunction(functionName, function, true, true);
         }
         
-        public void RegisterFunction(string functionName, Delegate function, bool isOverWritable)
+        public void RegisterFunction(string functionName, Delegate function, bool isIdempotent, bool isOverWritable)
         {
             if (string.IsNullOrEmpty(functionName))
                 throw new ArgumentNullException("functionName");
@@ -62,7 +63,10 @@ namespace Jace.Execution
                     if (genericArgument != typeof(double))
                         throw new ArgumentException("Only doubles are supported as function arguments.", "function");
 
-                numberOfParameters = function.GetMethodInfo().GetParameters().Length;
+                numberOfParameters = function
+                    .GetMethodInfo()
+                    .GetParameters()
+                    .Count(p => p.ParameterType == typeof(double));
             }
             else if (funcType.FullName.StartsWith(DynamicFuncName))
             {
@@ -91,7 +95,7 @@ namespace Jace.Execution
                 throw new Exception(message);
             }
 
-            FunctionInfo functionInfo = new FunctionInfo(functionName, numberOfParameters, isOverWritable, isDynamicFunc, function);
+            FunctionInfo functionInfo = new FunctionInfo(functionName, numberOfParameters, isIdempotent, isOverWritable, isDynamicFunc, function);
 
             if (functions.ContainsKey(functionName))
                 functions[functionName] = functionInfo;
@@ -109,7 +113,7 @@ namespace Jace.Execution
 
         private string ConvertFunctionName(string functionName)
         {
-            return caseSensitive ? functionName : functionName.ToLowerInvariant();
+            return caseSensitive ? functionName : functionName.ToLowerFast();
         }
     }
 }

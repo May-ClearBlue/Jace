@@ -43,7 +43,7 @@ namespace Jace.DemoApp
 
                 IFunctionRegistry functionRegistry = new FunctionRegistry(false);
 
-                AstBuilder astBuilder = new AstBuilder(functionRegistry);
+                AstBuilder astBuilder = new AstBuilder(functionRegistry, false);
                 Operation operation = astBuilder.Build(tokens);
 
                 ShowAbstractSyntaxTree(operation);
@@ -56,12 +56,9 @@ namespace Jace.DemoApp
                 }
 
                 //IExecutor executor = new Interpreter();
-                //                double result = executor.Execute(operation, null, variables);
-                Interpreter executor = new Interpreter();
-                Dictionary<string, VariableCalcurator> variablesv2 = new Dictionary<string, VariableCalcurator>();
-
-                VariableCalcurator result = executor.Execute(operation, null, variablesv2);
-
+                //double result = executor.Execute(operation, null, null, variables);
+				Interpreter executor = new Interpreter();
+                Dictionary<string, VariableCalcurator> variablesv2 = new Dictionary<string, VariableCalcurator>();                VariableCalcurator result = executor.Execute(operation, null, variablesv2);
                 resultTextBox.Text = "" + result;
             }
             catch (Exception ex)

@@ -8,9 +8,9 @@ namespace Jace.Execution
 {
     public interface IExecutor
     {
-        double Execute(Operation operation, IFunctionRegistry functionRegistry);
-        double Execute(Operation operation, IFunctionRegistry functionRegistry, IDictionary<string, double> variables);
-        Func<IDictionary<string, double>, double> BuildFormula(Operation operation, IFunctionRegistry functionRegistry);
+        double Execute(Operation operation, IFunctionRegistry functionRegistry, IConstantRegistry constantRegistry);
+        double Execute(Operation operation, IFunctionRegistry functionRegistry, IConstantRegistry constantRegistry, IDictionary<string, double> variables);
+        Func<IDictionary<string, double>, double> BuildFormula(Operation operation, IFunctionRegistry functionRegistry, IConstantRegistry constantRegistry);
 #if _USE_VARIABLE_
         Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation, IFunctionRegistry functionRegistry);
 #endif

@@ -5,19 +5,21 @@ using System.Text;
 using Jace.Execution;
 using Jace.Operations;
 using Jace.Tokenizer;
+using Jace.Util;
 
 namespace Jace
 {
     public class AstBuilder
     {
         private readonly IFunctionRegistry functionRegistry;
-
+        private readonly IConstantRegistry localConstantRegistry;
+        private readonly bool caseSensitive;
         private Dictionary<char, int> operationPrecedence = new Dictionary<char, int>();
         private Stack<Operation> resultStack = new Stack<Operation>();
         private Stack<Token> operatorStack = new Stack<Token>();
         private Stack<int> parameterCount = new Stack<int>();
 
-        public AstBuilder(IFunctionRegistry functionRegistry)
+        public AstBuilder(IFunctionRegistry functionRegistry, bool caseSensitive, IConstantRegistry compiledConstants = null)
         {
             if (functionRegistry == null)
                 throw new ArgumentNullException("functionRegistry");
@@ -89,7 +91,19 @@ namespace Jace
                         }
                         else
                         {
-                            resultStack.Push(new Variable(((string)token.Value).ToLowerInvariant()));
+                            string tokenValue = (string)token.Value;
+                            if (localConstantRegistry.IsConstantName(tokenValue))
+                            {
+                                resultStack.Push(new FloatingPointConstant(localConstantRegistry.GetConstantInfo(tokenValue).Value));
+                            }
+                            else
+                            {
+                                if (!caseSensitive)
+                                {
+                                    tokenValue = tokenValue.ToLowerFast();
+                                }
+                                resultStack.Push(new Variable(tokenValue));
+                            }
                         }
                         break;
 #endif
@@ -315,14 +329,22 @@ namespace Jace
                 {
                     FunctionInfo functionInfo = functionRegistry.GetFunctionInfo(functionName);
 
-                    int numberOfParameters = functionInfo.IsDynamicFunc ? parameterCount.Pop() : functionInfo.NumberOfParameters;
+                    int numberOfParameters;
+
+                    if (functionInfo.IsDynamicFunc) {
+                        numberOfParameters = parameterCount.Pop();
+                    }
+                    else {
+                        parameterCount.Pop();
+                        numberOfParameters = functionInfo.NumberOfParameters;
+                    }
                     
                     List<Operation> operations = new List<Operation>();
                     for (int i = 0; i < numberOfParameters; i++)
                         operations.Add(resultStack.Pop());
                     operations.Reverse();
 
-                    return new Function(DataType.FloatingPoint, functionName, operations);
+                    return new Function(DataType.FloatingPoint, functionName, operations, functionInfo.IsIdempotent);
                 }
                 else
                 {
