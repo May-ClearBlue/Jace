@@ -189,7 +189,19 @@ namespace Jace
             if (variables == null)
                 throw new ArgumentNullException("variables");
 
-            Operation operation = BuildAbstractSyntaxTree(formulaText);
+//ToDo
+/*
+            if (!caseSensitive)
+            {
+                variables = EngineUtil.ConvertVariableNamesToLowerCase(variables);
+            }
+            VerifyVariableNames(variables);
+
+            // Add the reserved variables to the dictionary
+            foreach (ConstantInfo constant in ConstantRegistry)
+                variables.Add(constant.ConstantName, constant.Value);
+*/
+            Operation operation = BuildAbstractSyntaxTree(formulaText, new ConstantRegistry(caseSensitive));
             var function = BuildFormulaV2(formulaText, operation);
             return function(variables);
         }

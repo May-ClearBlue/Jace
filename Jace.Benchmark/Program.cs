@@ -32,10 +32,10 @@ namespace Jace.Benchmark
         { 
             TimeSpan duration;
 
-            CalculationEngine interpretedEngine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted, true, true, true);
-            CalculationEngine interpretedEngineCaseSensitive = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted, true, true, false);
-            CalculationEngine compiledEngine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled, true, true, true);
-            CalculationEngine compiledEngineCaseSensitive = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled, true, true, false);
+            CalculationEngine interpretedEngine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted);
+            CalculationEngine interpretedEngineCaseSensitive = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Interpreted);
+            CalculationEngine compiledEngine = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled);
+            CalculationEngine compiledEngineCaseSensitive = new CalculationEngine(CultureInfo.InvariantCulture, ExecutionMode.Compiled);
 
             BenchMarkOperation[] benchmarks = {
                 new BenchMarkOperation() { Formula = "2+3*7", Mode = BenchmarkMode.Static, BenchMarkDelegate = BenchMarkCalculationEngine },

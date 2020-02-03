@@ -11,18 +11,18 @@ namespace Jace.Operations
         public bool lastResult = false;
 
         public VariableCalcurator(DataType dataType, string param)
-            : base(dataType, false)
+            : base(dataType, true, false)
         {
             paramString = param;
 //            this.DataType = type;
         }
 
-        public VariableCalcurator(bool param) : base(DataType.Boolean , false) { paramString = param.ToString(); }
-        public VariableCalcurator(int param) : base(DataType.Integer, false) { paramString = param.ToString(); }
-        public VariableCalcurator(float param) : base(DataType.FloatingPoint, false){ paramString = param.ToString(); }
-        public VariableCalcurator(string param) : base(DataType.Literal, false) { paramString = param; }
-        public VariableCalcurator(uint param) : base(DataType.UnsighnedInteger, false) { paramString = param.ToString(); }
-        public VariableCalcurator(string param, IDictionary<string, VariableCalcurator> _variables) : base(DataType.Variable, false) { paramString = param; _variables = variables; }
+        public VariableCalcurator(bool param) : base(DataType.Boolean , true, false) { paramString = param.ToString(); }
+        public VariableCalcurator(int param) : base(DataType.Integer, true, false) { paramString = param.ToString(); }
+        public VariableCalcurator(float param) : base(DataType.FloatingPoint, true, false) { paramString = param.ToString(); }
+        public VariableCalcurator(string param) : base(DataType.Literal, true, false) { paramString = param; }
+        public VariableCalcurator(uint param) : base(DataType.UnsighnedInteger, true, false) { paramString = param.ToString(); }
+        public VariableCalcurator(string param, IDictionary<string, VariableCalcurator> _variables) : base(DataType.Variable, true, false) { paramString = param; _variables = variables; }
 
         public VariableCalcurator instance
         {

@@ -86,7 +86,7 @@ namespace Jace.Tokenizer
                         double doubleValue;
 						if (buffer[0] == '0' && buffer.Length > 2 && (buffer[1] == 'x' || buffer[1] == 'X'))
                         {
-                            string _hex = buffer.Substring(2);
+                            string _hex = buffer.ToString().Substring(2);
                             if(uint.TryParse(_hex, System.Globalization.NumberStyles.AllowHexSpecifier, null, out uintValue))
                                 tokens.Add(new Token() { TokenType = TokenType.Hex, Value = uintValue, StartPosition = startPosition+2, Length = i - startPosition });
                         }
