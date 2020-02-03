@@ -62,18 +62,21 @@ namespace Jace
                         resultStack.Push(new VariableCalcurator((int)token.Value));
                         break;
                     case TokenType.FloatingPoint:
-                        resultStack.Push(new VariableCalcurator((float)token.Value));
+                        resultStack.Push(new VariableCalcurator(DataType.FloatingPoint, token.Value.ToString()));
                         break;
                     case TokenType.Hex:
                         resultStack.Push(new VariableCalcurator((uint)token.Value));
                         break;
-                    case TokenType.Text:
+                    case TokenType.Literal:
+                        resultStack.Push(new VariableCalcurator(DataType.Literal, (string)token.Value));
+                        break;
+                    case TokenType.Identifier:
                         if ((string)token.Value == "true")
                             resultStack.Push(new VariableCalcurator(true));
                         else if ((string)token.Value == "false")
                             resultStack.Push(new VariableCalcurator(false));
                         else
-                            resultStack.Push(new VariableCalcurator((string)token.Value));
+                            resultStack.Push(new VariableCalcurator(DataType.Identifier, (string)token.Value));
                         break;
 
 #else
@@ -123,18 +126,18 @@ namespace Jace
                         char operation1 = (char)operation1Token.Value;
 
                         while (operatorStack.Count > 0 && (operatorStack.Peek().TokenType == TokenType.Operation ||
-                            operatorStack.Peek().TokenType == TokenType.Text))
+                            operatorStack.Peek().TokenType == TokenType.Identifier))
                         {
                             Token operation2Token = operatorStack.Peek();
-                            bool isFunctionOnTopOfStack = operation2Token.TokenType == TokenType.Text;
+                            bool isFunctionOnTopOfStack = operation2Token.TokenType == TokenType.Identifier;
 
                             if (!isFunctionOnTopOfStack)
                             {
                                 char operation2 = (char)operation2Token.Value;
 
                                 if ((IsLeftAssociativeOperation(operation1) &&
-                                        operationPrecedence[operation1] <= operationPrecedence[operation2]) ||
-                                    (operationPrecedence[operation1] < operationPrecedence[operation2]))
+                                     operationPrecedence[operation1] <= operationPrecedence[operation2]) ||
+                                    (operationPrecedence[operation1] <  operationPrecedence[operation2]))
                                 {
                                     operatorStack.Pop();
                                     resultStack.Push(ConvertOperation(operation2Token));
@@ -178,7 +181,7 @@ namespace Jace
                     case TokenType.Operation:
                         resultStack.Push(ConvertOperation(token));
                         break;
-                    case TokenType.Text:
+                    case TokenType.Identifier:
                         resultStack.Push(ConvertFunction(token));
                         break;
                 }
@@ -384,6 +387,11 @@ namespace Jace
 
                 throw new ParseException("The syntax of the provided formula is not valid.");
             }
+        }
+
+        private bool IsCalcValue(TokenType type)
+        {
+            return type == TokenType.FloatingPoint || type == TokenType.Hex || type == TokenType.Identifier || type == TokenType.Integer || type == TokenType.Literal;
         }
 
         private bool IsLeftAssociativeOperation(char character)

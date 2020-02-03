@@ -47,13 +47,56 @@ namespace Jace.Tokenizer
 
             for (int i = 0; i < characters.Length; i++)
             {
-                if (IsPartOfNumeric(characters[i], true, isFormulaSubPart))
+                //literal
+                if (characters[i] == '\"')
+                {
+                    int startPosition = i;
+                    StringBuilder buffer = new StringBuilder();
+
+                    while (++i < characters.Length && characters[i] != '\"')
+                        buffer.Append(characters[i]);
+
+                    tokens.Add(new Token() { TokenType = TokenType.Literal, Value = buffer.ToString(), StartPosition = startPosition, Length = buffer.Length });
+
+                    continue;
+                }
+                else if (characters[i] == '\'')
+                {
+                    int startPosition = i;
+                    StringBuilder buffer = new StringBuilder();
+
+                    while (++i < characters.Length && characters[i] != '\'')
+                        buffer.Append(characters[i]);
+
+                    tokens.Add(new Token() { TokenType = TokenType.Literal, Value = buffer.ToString(), StartPosition = startPosition, Length = buffer.Length });
+
+                    continue;
+                }
+                else if (characters[i]  == '0' && characters.Length > 3 && (characters[i+1] == 'x' || characters[i+1] == 'X'))
+                {
+                    int startPosition = i + 2;
+
+                    i++;
+
+                    uint uintValue;
+                    StringBuilder buffer = new StringBuilder();
+
+                    while (++i < characters.Length && IsPartOfHex(characters[i]))
+                        buffer.Append(characters[i]);
+
+                    if (uint.TryParse(buffer.ToString() , System.Globalization.NumberStyles.AllowHexSpecifier, null, out uintValue))
+                        tokens.Add(new Token() { TokenType = TokenType.Hex, Value = uintValue, StartPosition = startPosition, Length = buffer.Length });
+                    else
+                        throw new Exception("elegal hex format");
+
+                    continue;
+                }
+
+                else if (IsPartOfNumeric(characters[i], true, isFormulaSubPart))
                 {
                     StringBuilder buffer = new StringBuilder();
                     buffer.Append(characters[i]);
-                    //string buffer = "" + characters[i];
                     int startPosition = i;
-                                       
 
                     while (++i < characters.Length && IsPartOfNumeric(characters[i], false, isFormulaSubPart))
                     {
@@ -69,7 +112,6 @@ namespace Jace.Tokenizer
                                 buffer.Append(characters[i++]);
                             }
                         }
-
                         buffer.Append(characters[i]);
                     }
 
@@ -79,18 +121,12 @@ namespace Jace.Tokenizer
                     {
                         tokens.Add(new Token() { TokenType = TokenType.Integer, Value = intValue, StartPosition = startPosition, Length = i - startPosition });
                         isFormulaSubPart = false;
+                        continue;
                     }
                     else
                     {
-                        uint uintValue;
                         double doubleValue;
-						if (buffer[0] == '0' && buffer.Length > 2 && (buffer[1] == 'x' || buffer[1] == 'X'))
-                        {
-                            string _hex = buffer.ToString().Substring(2);
-                            if(uint.TryParse(_hex, System.Globalization.NumberStyles.AllowHexSpecifier, null, out uintValue))
-                                tokens.Add(new Token() { TokenType = TokenType.Hex, Value = uintValue, StartPosition = startPosition+2, Length = i - startPosition });
-                        }
-                        else if (double.TryParse(buffer.ToString(), NumberStyles.Float | NumberStyles.AllowThousands,                            cultureInfo, out doubleValue))
+                        if (double.TryParse(buffer.ToString(), NumberStyles.Float | NumberStyles.AllowThousands,                            cultureInfo, out doubleValue))
                         {
                             tokens.Add(new Token() { TokenType = TokenType.FloatingPoint, Value = doubleValue, StartPosition = startPosition, Length = i - startPosition });
                             isScientific = false;
@@ -100,6 +136,7 @@ namespace Jace.Tokenizer
                         {
                             // Verify if we have a unary minus, we use the token '_' for a unary minus in the AST builder
                             tokens.Add(new Token() { TokenType = TokenType.Operation, Value = '_', StartPosition = startPosition, Length = 1 });
+                            continue;
                         }
                         // Else we skip
                     }
@@ -121,7 +158,7 @@ namespace Jace.Tokenizer
                         buffer += characters[i];
                     }
 
-                    tokens.Add(new Token() { TokenType = TokenType.Text, Value = buffer, StartPosition = startPosition, Length = i -startPosition });
+                    tokens.Add(new Token() { TokenType = TokenType.Identifier, Value = buffer, StartPosition = startPosition, Length = i -startPosition });
                     isFormulaSubPart = false;
 
                     if (i == characters.Length)
@@ -233,6 +270,11 @@ namespace Jace.Tokenizer
             return tokens;
         }
 
+        private bool IsPartOfHex(char character)
+        {
+            return (character >= 'a' && character <= 'f') || (character >= 'A' && character <= 'F') || ( character >= '0' && character <= '9');
+        }
+
         private bool IsPartOfNumeric(char character, bool isFirstCharacter, bool isFormulaSubPart)
         {
             return character == decimalSeparator || (character >= '0' && character <= '9') || (isFormulaSubPart && isFirstCharacter && character == '-') || (!isFirstCharacter && character == 'e') || (!isFirstCharacter && character == 'E');
@@ -251,7 +293,7 @@ namespace Jace.Tokenizer
 
                 return !(previousToken.TokenType == TokenType.FloatingPoint ||
                          previousToken.TokenType == TokenType.Integer ||
-                         previousToken.TokenType == TokenType.Text ||
+                         previousToken.TokenType == TokenType.Identifier ||
                          previousToken.TokenType == TokenType.RightBracket);
             }
             else

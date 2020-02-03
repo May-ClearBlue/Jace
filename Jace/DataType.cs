@@ -13,7 +13,6 @@ namespace Jace
         UnsighnedInteger,
         FloatingPoint,
         Literal,
-        Variable,
-//        Identifier,
+        Identifier,
     }
 }

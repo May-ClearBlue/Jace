@@ -247,7 +247,6 @@ namespace Jace
             if (string.IsNullOrEmpty(formulaText))
                 throw new ArgumentNullException("formulaText");
 
-
             ConstantRegistry compiledConstants = new ConstantRegistry(caseSensitive);
             if (constants != null)
             {

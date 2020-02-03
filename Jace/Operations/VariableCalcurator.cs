@@ -5,7 +5,7 @@ namespace Jace.Operations
 {
     public class VariableCalcurator : Operation
     {
-        public IDictionary<string, VariableCalcurator> variables = null;
+        static public IDictionary<string, VariableCalcurator> defaultVariables = null;
 
         public string paramString;
         public bool lastResult = false;
@@ -22,17 +22,26 @@ namespace Jace.Operations
         public VariableCalcurator(float param) : base(DataType.FloatingPoint, true, false) { paramString = param.ToString(); }
         public VariableCalcurator(string param) : base(DataType.Literal, true, false) { paramString = param; }
         public VariableCalcurator(uint param) : base(DataType.UnsighnedInteger, true, false) { paramString = param.ToString(); }
-        public VariableCalcurator(string param, IDictionary<string, VariableCalcurator> _variables) : base(DataType.Variable, true, false) { paramString = param; _variables = variables; }
 
-        public VariableCalcurator instance
+        public VariableCalcurator GetInstance(IDictionary<string, VariableCalcurator> variables = null)
         {
-            get
-            {
-                if (DataType == DataType.Variable)
-                    return variables[paramString].instance;
-                else
-                    return this;
-            }
+            if (variables == null)
+                variables = defaultVariables;
+
+            if (DataType == DataType.Identifier)
+                return variables[paramString].GetInstance(variables);
+            else
+                return this;
+        }
+
+        public bool Substitution(VariableCalcurator dest, IDictionary<string, VariableCalcurator> variables = null)
+        {
+            if (DataType != DataType.Identifier)
+                return false;
+
+            variables[paramString] = dest;
+
+            return true;
         }
 
         public bool Bool(bool defaultValue = false)

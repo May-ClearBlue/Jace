@@ -60,7 +60,7 @@ namespace Jace.DemoApp
 				Interpreter executor = new Interpreter();
                 Dictionary<string, VariableCalcurator> variablesv2 = new Dictionary<string, VariableCalcurator>();
                 VariableCalcurator result = executor.Execute(operation, null, variablesv2);
-                resultTextBox.Text = "" + result;
+                resultTextBox.Text = "Type:" + result.DataType.ToString() + "   Param:"+result.paramString;
             }
             catch (Exception ex)
             {
