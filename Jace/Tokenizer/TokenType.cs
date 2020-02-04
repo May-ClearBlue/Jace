@@ -7,14 +7,17 @@ namespace Jace.Tokenizer
 {
     public enum TokenType
     {
+        Null,
         Integer,
         FloatingPoint,
         Hex,
         Identifier,
         Literal,
         Operation,
-        LeftBracket,
-        RightBracket,
+        OpenParentheses,
+        CloseParentheses,
+        OpenBracket,
+        CloseBracket,
         ArgumentSeparator
     }
 }

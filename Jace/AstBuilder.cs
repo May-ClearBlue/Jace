@@ -25,7 +25,7 @@ namespace Jace
                 throw new ArgumentNullException("functionRegistry");
 
             this.functionRegistry = functionRegistry;
-            operationPrecedence.Add('＝', 0);
+            operationPrecedence.Add('[', 0);
             operationPrecedence.Add('(', 0);
             operationPrecedence.Add('&', 1);
             operationPrecedence.Add('|', 1);
@@ -42,6 +42,7 @@ namespace Jace
             operationPrecedence.Add('%', 4);
             operationPrecedence.Add('_', 6);
             operationPrecedence.Add('^', 5);
+            operationPrecedence.Add('＝', 0);
         }
 
         public Operation Build(IList<Token> tokens)
@@ -110,15 +111,20 @@ namespace Jace
                         }
                         break;
 #endif
-                    case TokenType.LeftBracket:
+                    case TokenType.OpenParentheses:
                         operatorStack.Push(token);
                         break;
-                    case TokenType.RightBracket:
-                        PopOperations(true, token);
-                        //parameterCount.Pop();
+                    case TokenType.CloseParentheses:
+                        PopOperations(TokenType.OpenParentheses, token);
+                        break;
+                    case TokenType.OpenBracket:
+                        operatorStack.Push(token);
+                        break;
+                    case TokenType.CloseBracket:
+                        PopOperations(TokenType.OpenBracket, token);
                         break;
                     case TokenType.ArgumentSeparator:
-                        PopOperations(false, token);
+                        PopOperations(TokenType.Null, token);
                         parameterCount.Push(parameterCount.Pop() + 1);
                         break;
                     case TokenType.Operation:
@@ -159,20 +165,20 @@ namespace Jace
                 }
             }
 
-            PopOperations(false, null);
+            PopOperations(TokenType.Null , null);
 
             VerifyResultStack();
 
             return resultStack.First();
         }
 
-        private void PopOperations(bool untillLeftBracket, Token? currentToken)
+        private void PopOperations(TokenType pairLeft,  Token? currentToken)
         {
-            if (untillLeftBracket && !currentToken.HasValue)
+            if (pairLeft != TokenType.Null && !currentToken.HasValue)
                 throw new ArgumentNullException("currentToken", "If the parameter \"untillLeftBracket\" is set to true, " +
                     "the parameter \"currentToken\" cannot be null.");
 
-            while (operatorStack.Count > 0 && operatorStack.Peek().TokenType != TokenType.LeftBracket)
+            while (operatorStack.Count > 0 && operatorStack.Peek().TokenType != TokenType.OpenParentheses && operatorStack.Peek().TokenType != TokenType.OpenBracket)
             {
                 Token token = operatorStack.Pop();
 
@@ -187,17 +193,23 @@ namespace Jace
                 }
             }
 
-            if (untillLeftBracket)
+            if (pairLeft != TokenType.Null)
             {
-                if (operatorStack.Count > 0 && operatorStack.Peek().TokenType == TokenType.LeftBracket)
-                    operatorStack.Pop();
+                Token token;
+
+                if (operatorStack.Count > 0 && operatorStack.Peek().TokenType == pairLeft)
+                    token = operatorStack.Pop();
                 else
                     throw new ParseException(string.Format("No matching left bracket found for the right " +
                         "bracket at position {0}.", currentToken.Value.StartPosition));
+
+                if (pairLeft == TokenType.OpenBracket)
+                    resultStack.Push(ConvertOperation(token));
+
             }
             else
             {
-                if (operatorStack.Count > 0 && operatorStack.Peek().TokenType == TokenType.LeftBracket 
+                if (operatorStack.Count > 0 && (operatorStack.Peek().TokenType == TokenType.OpenParentheses || operatorStack.Peek().TokenType == TokenType.OpenBracket)
                     && !(currentToken.HasValue && currentToken.Value.TokenType == TokenType.ArgumentSeparator))
                     throw new ParseException(string.Format("No matching right bracket found for the left " +
                         "bracket at position {0}.", operatorStack.Peek().StartPosition));
@@ -308,6 +320,12 @@ namespace Jace
                         dataType = RequiredDataType(argument1, argument2);
 
                         return new Substitution(dataType, argument1, argument2);
+                    case '[':
+                        argument2 = resultStack.Pop();
+                        argument1 = resultStack.Pop();
+                        dataType = RequiredDataType(argument1, argument2);
+
+                        return new Index(dataType, argument1, argument2);
 #endif
                     default:
                         throw new ArgumentException(string.Format("Unknown operation \"{0}\".", operationToken), "operation");

@@ -45,7 +45,8 @@ namespace Jace.Tokenizer
             bool isFormulaSubPart = true;
             bool isScientific = false;
 
-            for (int i = 0; i < characters.Length; i++)
+            int i = 0;
+            while(i < characters.Length)
             {
                 //literal
                 if (characters[i] == '\"')
@@ -171,6 +172,7 @@ namespace Jace.Tokenizer
                 {
                     tokens.Add(new Token() { TokenType = Tokenizer.TokenType.ArgumentSeparator, Value = characters[i], StartPosition = i, Length = 1 });
                     isFormulaSubPart = false;
+                    i++;
                 }
                 else
                 {
@@ -199,11 +201,19 @@ namespace Jace.Tokenizer
                             isFormulaSubPart = true;
                             break;
                         case '(':
-                            tokens.Add(new Token() { TokenType = TokenType.LeftBracket, Value = characters[i], StartPosition = i, Length = 1 });
+                            tokens.Add(new Token() { TokenType = TokenType.OpenParentheses, Value = characters[i], StartPosition = i, Length = 1 });
                             isFormulaSubPart = true;
                             break;
                         case ')':
-                            tokens.Add(new Token() { TokenType = TokenType.RightBracket, Value = characters[i], StartPosition = i, Length = 1 });
+                            tokens.Add(new Token() { TokenType = TokenType.CloseParentheses, Value = characters[i], StartPosition = i, Length = 1 });
+                            isFormulaSubPart = false;
+                            break;
+                        case '[':
+                            tokens.Add(new Token() { TokenType = TokenType.OpenBracket, Value = characters[i], StartPosition = i, Length = 1 });
+                            isFormulaSubPart = true;
+                            break;
+                        case ']':
+                            tokens.Add(new Token() { TokenType = TokenType.CloseBracket, Value = characters[i], StartPosition = i, Length = 1 });
                             isFormulaSubPart = false;
                             break;
                         case '<':
@@ -255,7 +265,7 @@ namespace Jace.Tokenizer
                             }
 #if _USE_VARIABLE_
                             else
-                                tokens.Add(new Token() { TokenType = TokenType.Operation, Value = '＝', StartPosition = i++, Length = 1 });
+                                tokens.Add(new Token() { TokenType = TokenType.Operation, Value = '＝', StartPosition = i, Length = 1 });
 #else
                             else
                                 throw new ParseException(string.Format("Invalid token \"{0}\" detected at position {1}.", characters[i], i));
@@ -264,6 +274,8 @@ namespace Jace.Tokenizer
                         default:
                             throw new ParseException(string.Format("Invalid token \"{0}\" detected at position {1}.", characters[i], i));
                     }
+
+                    i++;
                 }
             }
 
@@ -294,7 +306,9 @@ namespace Jace.Tokenizer
                 return !(previousToken.TokenType == TokenType.FloatingPoint ||
                          previousToken.TokenType == TokenType.Integer ||
                          previousToken.TokenType == TokenType.Identifier ||
-                         previousToken.TokenType == TokenType.RightBracket);
+                         previousToken.TokenType == TokenType.CloseBracket ||
+                         previousToken.TokenType == TokenType.CloseParentheses
+                         );
             }
             else
                 return false;

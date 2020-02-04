@@ -413,7 +413,7 @@ namespace Jace.Tests
             Assert.AreEqual('(', tokens[1].Value);
             Assert.AreEqual(4, tokens[1].StartPosition);
             Assert.AreEqual(1, tokens[1].Length);
-            Assert.AreEqual(TokenType.LeftBracket, tokens[1].TokenType);
+            Assert.AreEqual(TokenType.OpenParentheses, tokens[1].TokenType);
 
             Assert.AreEqual(2, tokens[2].Value);
             Assert.AreEqual(5, tokens[2].StartPosition);
@@ -431,7 +431,7 @@ namespace Jace.Tests
             Assert.AreEqual(')', tokens[5].Value);
             Assert.AreEqual(8, tokens[5].StartPosition);
             Assert.AreEqual(1, tokens[5].Length);
-            Assert.AreEqual(TokenType.RightBracket, tokens[5].TokenType);
+            Assert.AreEqual(TokenType.CloseParentheses, tokens[5].TokenType);
         }
 
         [TestMethod]

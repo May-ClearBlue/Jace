@@ -7,7 +7,10 @@ namespace Jace.Operations
     {
         static public IDictionary<string, VariableCalcurator> defaultVariables = null;
 
+        protected Dictionary<string, VariableCalcurator> arrayInstance;// = new Dictionary<string, VariableCalcurator>();
+
         public string paramString;
+        public VariableCalcurator indexVar;
         public bool lastResult = false;
 
         public VariableCalcurator(DataType dataType, string param)
@@ -17,11 +20,17 @@ namespace Jace.Operations
 //            this.DataType = type;
         }
 
+        public VariableCalcurator(object param) : base(DataType.Array, true, false) { paramString = param.ToString(); }
         public VariableCalcurator(bool param) : base(DataType.Boolean , true, false) { paramString = param.ToString(); }
         public VariableCalcurator(int param) : base(DataType.Integer, true, false) { paramString = param.ToString(); }
         public VariableCalcurator(float param) : base(DataType.FloatingPoint, true, false) { paramString = param.ToString(); }
         public VariableCalcurator(string param) : base(DataType.Literal, true, false) { paramString = param; }
         public VariableCalcurator(uint param) : base(DataType.UnsighnedInteger, true, false) { paramString = param.ToString(); }
+
+        protected VariableCalcurator GetArray(VariableCalcurator index)
+        {
+            return arrayInstance[index.Literal()];
+        }
 
         public VariableCalcurator GetInstance(IDictionary<string, VariableCalcurator> variables = null)
         {
@@ -30,19 +39,41 @@ namespace Jace.Operations
 
             if (DataType == DataType.Identifier)
                 return variables[paramString].GetInstance(variables);
+            else if (DataType == DataType.Array)
+                return arrayInstance[indexVar.Literal()].GetInstance(variables);
             else
                 return this;
         }
 
+
         public bool Substitution(VariableCalcurator dest, IDictionary<string, VariableCalcurator> variables = null)
         {
-            if (DataType != DataType.Identifier)
+            if (DataType != DataType.Identifier && DataType != DataType.Array)
                 return false;
 
-            variables[paramString] = dest;
+            if (DataType == DataType.Identifier)
+                variables[paramString] = dest;
+            else if (DataType == DataType.Array)
+            {
+                if(arrayInstance == null)
+                    arrayInstance = new Dictionary<string, VariableCalcurator>();
+
+                arrayInstance[indexVar.Literal()] = dest;
+            }
 
             return true;
         }
+
+        public bool Index(VariableCalcurator dest)
+        {
+            if (DataType != DataType.Array)
+                return false;
+
+            indexVar = dest;
+
+            return true;
+        }
+
 
         public bool Bool(bool defaultValue = false)
         {

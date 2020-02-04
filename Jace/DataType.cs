@@ -14,5 +14,6 @@ namespace Jace
         FloatingPoint,
         Literal,
         Identifier,
+        Array
     }
 }

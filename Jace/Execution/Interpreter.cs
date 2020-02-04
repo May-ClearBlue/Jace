@@ -35,16 +35,6 @@ namespace Jace.Execution
               });
         }
 
-#if _USE_VARIABLE_
-        public Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation,
-            IFunctionRegistry functionRegistry)
-        {
-            return variables =>
-            {
-                return Execute(operation, functionRegistry, variables);
-            };
-        }
-#endif
         public double Execute(Operation operation, IFunctionRegistry functionRegistry, IConstantRegistry constantRegistry)
         {
             return Execute(operation, functionRegistry, constantRegistry, new Dictionary<string, double>());
@@ -180,6 +170,15 @@ namespace Jace.Execution
         }
 
 #if _USE_VARIABLE_
+        public Func<IDictionary<string, VariableCalcurator>, VariableCalcurator> BuildFormulaV2(Operation operation,
+            IFunctionRegistry functionRegistry)
+        {
+            return variables =>
+            {
+                return Execute(operation, functionRegistry, variables);
+            };
+        }
+
         public VariableCalcurator Execute(Operation operation, IFunctionRegistry functionRegistry,
             IDictionary<string, VariableCalcurator> variables)
         {
@@ -284,6 +283,11 @@ namespace Jace.Execution
                 NotEqual notEqual = (NotEqual)operation;
                 return (Execute(notEqual.Argument1, functionRegistry, variables).GetInstance() != Execute(notEqual.Argument2, functionRegistry, variables).GetInstance());
             }
+            else if (operation.GetType() == typeof(Index))
+            {
+                Index index = (Index)operation;
+                return Index(Execute(index.Argument1, functionRegistry, variables), Execute(index.Argument2, functionRegistry, variables), variables);
+            }
             else if (operation.GetType() == typeof(Substitution))
             {
                 Substitution substitution = (Substitution)operation;
@@ -314,6 +318,13 @@ namespace Jace.Execution
         private VariableCalcurator Substitute(VariableCalcurator arg1, VariableCalcurator arg2, IDictionary<string, VariableCalcurator> variables)
         {
             arg1.Substitution(arg2, variables);
+            return arg1;
+        }
+
+        private VariableCalcurator Index(VariableCalcurator arg1, VariableCalcurator arg2, IDictionary<string, VariableCalcurator> variables)
+        {
+            arg1 = new VariableCalcurator(DataType.Array, arg1.Literal() );
+            arg1.Index(arg2);
             return arg1;
         }
 

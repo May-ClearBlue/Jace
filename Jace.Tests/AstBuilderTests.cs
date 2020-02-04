@@ -29,11 +29,11 @@ namespace Jace.Tests
 
             AstBuilder builder = new AstBuilder(registry, false);
             Operation operation = builder.Build(new List<Token>() { 
-                new Token() { Value = '(', TokenType = TokenType.LeftBracket }, 
+                new Token() { Value = '(', TokenType = TokenType.OpenParentheses }, 
                 new Token() { Value = 42, TokenType = TokenType.Integer }, 
                 new Token() { Value = '+', TokenType = TokenType.Operation }, 
                 new Token() { Value = 8, TokenType = TokenType.Integer }, 
-                new Token() { Value = ')', TokenType = TokenType.RightBracket }, 
+                new Token() { Value = ')', TokenType = TokenType.CloseBracket}, 
                 new Token() { Value = '*', TokenType = TokenType.Operation }, 
                 new Token() { Value = 2, TokenType = TokenType.Integer } 
             });
@@ -193,11 +193,11 @@ namespace Jace.Tests
                 new Token() { Value = '+', TokenType = TokenType.Operation }, 
                 new Token() { Value = 2, TokenType = TokenType.Integer }, 
                 new Token() { Value = '*', TokenType = TokenType.Operation }, 
-                new Token() { Value = '(', TokenType = TokenType.LeftBracket }, 
+                new Token() { Value = '(', TokenType = TokenType.OpenParentheses }, 
                 new Token() { Value = 3, TokenType = TokenType.Integer }, 
                 new Token() { Value = '*', TokenType = TokenType.Operation }, 
                 new Token() { Value = "age", TokenType = TokenType.Identifier }, 
-                new Token() { Value = ')', TokenType = TokenType.RightBracket }
+                new Token() { Value = ')', TokenType = TokenType.CloseParentheses }
             });
 
             Addition addition = (Addition)operation;
@@ -218,9 +218,9 @@ namespace Jace.Tests
             AstBuilder builder = new AstBuilder(registry, false);
             Operation operation = builder.Build(new List<Token>() { 
                 new Token() { Value = "sin", TokenType = TokenType.Identifier }, 
-                new Token() { Value = '(', TokenType = TokenType.LeftBracket }, 
+                new Token() { Value = '(', TokenType = TokenType.OpenParentheses }, 
                 new Token() { Value = 2, TokenType = TokenType.Integer }, 
-                new Token() { Value = ')', TokenType = TokenType.RightBracket }
+                new Token() { Value = ')', TokenType = TokenType.CloseParentheses }
             });
 
             Function sineFunction = (Function)operation;
@@ -235,11 +235,11 @@ namespace Jace.Tests
             AstBuilder builder = new AstBuilder(registry, false);
             Operation operation = builder.Build(new List<Token>() { 
                 new Token() { Value = "sin", TokenType = TokenType.Identifier }, 
-                new Token() { Value = '(', TokenType = TokenType.LeftBracket }, 
+                new Token() { Value = '(', TokenType = TokenType.OpenParentheses }, 
                 new Token() { Value = 2, TokenType = TokenType.Integer }, 
                 new Token() { Value = '+', TokenType = TokenType.Operation }, 
                 new Token() { Value = 3, TokenType = TokenType.Integer }, 
-                new Token() { Value = ')', TokenType = TokenType.RightBracket }
+                new Token() { Value = ')', TokenType = TokenType.CloseParentheses }
             });
 
             Function sineFunction = (Function)operation;
@@ -257,11 +257,11 @@ namespace Jace.Tests
             AstBuilder builder = new AstBuilder(registry, false);
             Operation operation = builder.Build(new List<Token>() { 
                 new Token() { Value = "sin", TokenType = TokenType.Identifier }, 
-                new Token() { Value = '(', TokenType = TokenType.LeftBracket }, 
+                new Token() { Value = '(', TokenType = TokenType.OpenParentheses }, 
                 new Token() { Value = 2, TokenType = TokenType.Integer }, 
                 new Token() { Value = '+', TokenType = TokenType.Operation }, 
                 new Token() { Value = 3, TokenType = TokenType.Integer }, 
-                new Token() { Value = ')', TokenType = TokenType.RightBracket },
+                new Token() { Value = ')', TokenType = TokenType.CloseParentheses },
                 new Token() { Value = '*', TokenType = TokenType.Operation },
                 new Token() { Value = 4.9, TokenType = TokenType.FloatingPoint }
             });
@@ -287,11 +287,11 @@ namespace Jace.Tests
                 new Token() { Value = 5.3, TokenType = TokenType.FloatingPoint }, 
                 new Token() { Value = '*', TokenType = TokenType.Operation}, 
                 new Token() { Value = '_', TokenType = TokenType.Operation }, 
-                new Token() { Value = '(', TokenType = TokenType.LeftBracket }, 
+                new Token() { Value = '(', TokenType = TokenType.OpenParentheses }, 
                 new Token() { Value = 5, TokenType = TokenType.Integer }, 
                 new Token() { Value = '+', TokenType = TokenType.Operation }, 
                 new Token() { Value = 42, TokenType = TokenType.Integer }, 
-                new Token() { Value = ')', TokenType = TokenType.RightBracket }, 
+                new Token() { Value = ')', TokenType = TokenType.CloseParentheses }, 
             });
 
             Multiplication multiplication = (Multiplication)operation;
@@ -314,11 +314,11 @@ namespace Jace.Tests
             AssertExtensions.ThrowsException<ParseException>(() =>
                 {
                     Operation operation = builder.Build(new List<Token>() { 
-                        new Token() { Value = '(', TokenType = TokenType.LeftBracket, StartPosition = 0 }, 
+                        new Token() { Value = '(', TokenType = TokenType.OpenParentheses, StartPosition = 0 }, 
                         new Token() { Value = 42, TokenType = TokenType.Integer, StartPosition = 1 }, 
                         new Token() { Value = '+', TokenType = TokenType.Operation, StartPosition = 3 }, 
                         new Token() { Value = 8, TokenType = TokenType.Integer, StartPosition = 4 }, 
-                        new Token() { Value = ')', TokenType = TokenType.RightBracket, StartPosition = 5 }, 
+                        new Token() { Value = ')', TokenType = TokenType.CloseParentheses, StartPosition = 5 }, 
                         new Token() { Value = '*', TokenType = TokenType.Operation, StartPosition = 6 }, 
                     });
                 });
@@ -337,7 +337,7 @@ namespace Jace.Tests
                         new Token() { Value = 42, TokenType = TokenType.Integer, StartPosition = 0 }, 
                         new Token() { Value = '+', TokenType = TokenType.Operation, StartPosition = 2 }, 
                         new Token() { Value = 8, TokenType = TokenType.Integer, StartPosition = 3 }, 
-                        new Token() { Value = ')', TokenType = TokenType.RightBracket, StartPosition = 4 }, 
+                        new Token() { Value = ')', TokenType = TokenType.OpenParentheses, StartPosition = 4 }, 
                         new Token() { Value = '*', TokenType = TokenType.Operation, StartPosition = 5 }, 
                         new Token() { Value = 2, TokenType = TokenType.Integer, StartPosition = 6 }, 
                     });
@@ -354,7 +354,7 @@ namespace Jace.Tests
             AssertExtensions.ThrowsException<ParseException>(() =>
                 {
                     Operation operation = builder.Build(new List<Token>() { 
-                        new Token() { Value = '(', TokenType = TokenType.LeftBracket, StartPosition = 0 }, 
+                        new Token() { Value = '(', TokenType = TokenType.OpenParentheses, StartPosition = 0 }, 
                         new Token() { Value = 42, TokenType = TokenType.Integer, StartPosition = 1 }, 
                         new Token() { Value = '+', TokenType = TokenType.Operation, StartPosition = 3 }, 
                         new Token() { Value = 8, TokenType = TokenType.Integer, StartPosition = 4 }
